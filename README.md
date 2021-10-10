@@ -22,3 +22,5 @@ npm install
 ```sh
 npm start
 ```
+
+Built following [Rodrigo Pomobo's excellent tutorial](https://pomb.us/build-your-own-react/)
