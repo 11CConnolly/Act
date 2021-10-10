@@ -1,8 +1,9 @@
 ![Cover logo](./cover.png?raw=true "Title")
 
-### __A minimal React clone for building user interfaces__
+### **A minimal React clone for building user interfaces**
 
 ### To run Act, follow these steps:
+
 1. Clone the repo
 
 ```sh
