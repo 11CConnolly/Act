@@ -1,10 +1,12 @@
 import Act from "./Act";
 
 /** @jsx Act.createElement */
+// TODO Make the style objects passed in an object
 const element = (
-  <div style="background: salmon">
-    <h1>Hello World</h1>
-    <h2 style="text-align:right">from Didact</h2>
+  <div id="foo" style="background: salmon; width: 200px; height: 300px">
+    <x>bar</x>
+    <h2>Baz</h2>
+    <b />
   </div>
 );
 const container = document.getElementById("root");

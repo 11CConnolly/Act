@@ -1,4 +1,5 @@
-function createElement(type, props, ...children) {
+// Creates object from JSX passed to it, children are an array, of the child
+const createElement = (type, props, ...children) => {
   return {
     type,
     props: {
@@ -8,9 +9,10 @@ function createElement(type, props, ...children) {
       ),
     },
   };
-}
+};
 
-function createTextElement(text) {
+// Creating text elements for Children which are just text
+const createTextElement = (text) => {
   return {
     type: "TEXT_ELEMENT",
     props: {
@@ -18,22 +20,26 @@ function createTextElement(text) {
       children: [],
     },
   };
-}
+};
 
-function render(element, container) {
+// Rendering and appending elements to the DOM
+const render = (element, container) => {
   const dom =
     element.type === "TEXT_ELEMENT"
-      ? document.createTextNode("")
+      ? document.createTextNode(element.type)
       : document.createElement(element.type);
+
   const isProperty = (key) => key !== "children";
   Object.keys(element.props)
     .filter(isProperty)
     .forEach((name) => {
       dom[name] = element.props[name];
     });
+
   element.props.children.forEach((child) => render(child, dom));
+
   container.appendChild(dom);
-}
+};
 
 const Act = {
   createElement,
