@@ -22,7 +22,7 @@ const createTextElement = (text) => {
   };
 };
 
-// Rendering and appending elements to the DOM
+/* // Rendering and appending elements to the DOM
 const render = (element, container) => {
   const dom =
     element.type === "TEXT_ELEMENT"
@@ -41,6 +41,18 @@ const render = (element, container) => {
   element.props.children.forEach((child) => render(child, dom));
 
   container.appendChild(dom);
+}; */
+
+// Rendering out the JSX to DOM Elements. We pass in the root first, for which
+// Work will begin once the browser is ready
+const render = (element, container) => {
+  wipRoot = {
+    dom: container,
+    props: {
+      children: [element],
+    },
+  };
+  nextUnitOfWork = wipRoot;
 };
 
 const createDom = (fiber) => {
@@ -59,23 +71,14 @@ const createDom = (fiber) => {
   return dom;
 };
 
-const renderFiber = (element, container) => {
-  nextUnitOfWork = {
-    dom: container,
-    props: {
-      children: [element],
-    },
-  };
-};
+let nextUnitOfWork = null;
+let wipRoot = null;
 
-const performUnitOfWork = (nextUnitOfWork) => {
-  // Add dom node
+const performUnitOfWork = (fiber) => {
+  // Add DOM node
+  // The property .dom keeps track of the DOM node we want to create
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
-  }
-
-  if (fiber.parent) {
-    fiber.parent.dom.appendChild(fiber.dom);
   }
 
   // Create fibers for elements children
@@ -117,15 +120,33 @@ const performUnitOfWork = (nextUnitOfWork) => {
   }
 };
 
-let nextUnitOfWork = null;
+const commitWork = (fiber) => {
+  if (!fiber) {
+    return;
+  }
+  const domParent = fiber.parent.dom;
+  domParent.appendChild(fiber.dom);
+  commitWork(fiber.child);
+  commitWork(fiber.sibling);
+};
+
+const commitRoot = () => {
+  commitWork(wipRoot.child);
+  wipRoot = null;
+};
 
 // The deadline passed in tells us how long we have until the browser needs control again
 const workLoop = (deadline) => {
-  const shouldYield = false;
+  let shouldYield = false;
   while (nextUnitOfWork && !shouldYield) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork);
     shouldYield = deadline.timeRemaining() < 1;
   }
+
+  if (!nextUnitOfWork && wipRoot) {
+    commitRoot();
+  }
+
   requestIdleCallback(workLoop);
 };
 
