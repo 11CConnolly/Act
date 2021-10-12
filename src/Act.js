@@ -22,27 +22,6 @@ const createTextElement = (text) => {
   };
 };
 
-/* // Rendering and appending elements to the DOM
-const render = (element, container) => {
-  const dom =
-    element.type === "TEXT_ELEMENT"
-      ? document.createTextNode(element.type)
-      : document.createElement(element.type);
-
-  const isProperty = (key) => key !== "children";
-  Object.keys(element.props)
-    .filter(isProperty)
-    .forEach((name) => {
-      dom[name] = element.props[name];
-    });
-
-  // This recursive call won't stop until the complete tree is rendered, getting in the way
-  // Of other potential actions the browser needs to do e.g. handling user input
-  element.props.children.forEach((child) => render(child, dom));
-
-  container.appendChild(dom);
-}; */
-
 // Rendering out the JSX to DOM Elements. We pass in the root first, for which
 // Work will begin once the browser is ready
 const render = (element, container) => {
@@ -99,7 +78,7 @@ const performUnitOfWork = (fiber) => {
     if (index === 0) {
       fiber.child = newFiber;
     } else {
-      prevSibling = newFiber;
+      prevSibling.sibling = newFiber;
     }
 
     prevSibling = newFiber;
