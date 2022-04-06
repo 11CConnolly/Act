@@ -58,15 +58,30 @@ let wipRoot = null;
 let currentRoot = null;
 let deletions = null;
 
-const performUnitOfWork = (fiber) => {
+const updateHostComponent = (fiber) => {
   // Add DOM node
-  // The property .dom keeps track of the DOM node we want to create
+  // The property dom keeps track of the DOM node we want to create
   if (!fiber.dom) {
     fiber.dom = createDom(fiber);
   }
 
   const elements = fiber.props.children;
   reconcileChildren(fiber, elements);
+};
+
+const updateFunctionComponent = (fiber) => {
+  // Get the children and do exactly what we did before
+  const children = [fiber.type(fiber.props)];
+  reconcileChildren(fiber, children);
+};
+
+const performUnitOfWork = (fiber) => {
+  const isFunctionComponent = fiber.type instanceof Function;
+  if (isFunctionComponent) {
+    updateFunctionComponent(fiber);
+  } else {
+    updateHostComponent(fiber);
+  }
 
   // Search and return the next unit of work
   if (fiber.child) {
@@ -188,12 +203,28 @@ const updateDom = (dom, prevProps, nextProps) => {
     });
 };
 
+const commitDeletion = (fiber, domParent) => {
+  if (fiber.dom) {
+    domParent.removeChild(fiber.dom);
+  } else {
+    commitDeletion(fiber.child, domParent);
+  }
+};
+
+// For Function Components, we have fibers without DOM nodes
 const commitWork = (fiber) => {
   // If no elements to commit, cancel
   if (!fiber) {
     return;
   }
-  const domParent = fiber.parent.dom;
+
+  // Go up the fiber tree til we find a fiber with a DOM node
+  let domParentFiber = fiber.parent;
+  while (!domParentFiber.dom) {
+    domParentFiber = domParentFiber.parent;
+  }
+
+  const domParent = domParentFiber.dom;
 
   // Handling effect tags
   if (fiber.effectTag === "PLACEMENT" && fiber.dom != null) {
@@ -203,11 +234,10 @@ const commitWork = (fiber) => {
     // Change DOM node
     updateDom(fiber.dom, fiber.alternate.props, fiber.props);
   } else if (fiber.effectTag === "DELETION") {
-    // Remove the dom node to the parent
-    domParent.removeChild(fiber.dom);
+    // Remove the dom node to the parent. Keep going til we find a child with a DOM node
+    commitDeletion(fiber, domParent);
   }
 
-  domParent.appendChild(fiber.dom);
   commitWork(fiber.child);
   commitWork(fiber.sibling);
 };
